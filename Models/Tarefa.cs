@@ -1,7 +1,10 @@
-﻿namespace gerenciamento_tarefas.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace gerenciamento_tarefas.Models;
 
 public class Tarefa
 {
+    [JsonIgnore]
     public int Id { get; set; }
     public string? Titulo { get; set; }
     public string? Descricao { get; set; }
