@@ -66,9 +66,14 @@ public class TarefasController : ControllerBase
         if (tarefa.Data == DateTime.MinValue)
             return BadRequest(new { Erro = "A data da tarefa não pode ser vazia" });
 
+
+        if (!Enum.IsDefined(typeof(EnumStatusTarefa), tarefa.Status))
+            return BadRequest(new { Erro = "O status deve ser 0 (Pendente) ou 1 (Finalizado)." });
+
         // TODO: Adicionar a tarefa recebida no EF e salvar as mudanças (save changes)
         _context.Tarefas.Add(tarefa);
         _context.SaveChanges();
+
         return CreatedAtAction(nameof(ObterPorId), new { id = tarefa.Id }, tarefa);
     }
 
@@ -78,22 +83,31 @@ public class TarefasController : ControllerBase
         var tarefaBanco = _context.Tarefas.Find(id);
 
         if (tarefaBanco == null)
-            return NotFound();
+            return NotFound(new { Erro = "Tarefa não encontrada" });
 
         if (tarefa.Data == DateTime.MinValue)
             return BadRequest(new { Erro = "A data da tarefa não pode ser vazia" });
 
+        if (tarefa.Status != default(EnumStatusTarefa) && !Enum.IsDefined(typeof(EnumStatusTarefa), tarefa.Status))
+            return BadRequest(new { Erro = "Status inválido. O status deve ser 0 (Pendente) ou 1 (Finalizado)." });
+
         // TODO: Atualizar as informações da variável tarefaBanco com a tarefa recebida via parâmetro
         // TODO: Atualizar a variável tarefaBanco no EF e salvar as mudanças (save changes)
-        tarefaBanco.Titulo = tarefa.Titulo;
-        tarefaBanco.Descricao = tarefa.Descricao;
-        tarefaBanco.Data = tarefa.Data;
-        tarefaBanco.Status = tarefa.Status;
+        if (tarefa.Titulo != null)
+            tarefaBanco.Titulo = tarefa.Titulo;
 
-        _context.Tarefas.Update(tarefaBanco);
+        if (tarefa.Descricao != null)
+            tarefaBanco.Descricao = tarefa.Descricao;
+
+        if (tarefa.Data != default(DateTime))
+            tarefaBanco.Data = tarefa.Data;
+
+        if (tarefa.Status != default(EnumStatusTarefa))
+            tarefaBanco.Status = tarefa.Status;
+
         _context.SaveChanges();
 
-        return Ok();
+        return Ok(tarefaBanco);
     }
 
     [HttpDelete("delete/{id}")]
